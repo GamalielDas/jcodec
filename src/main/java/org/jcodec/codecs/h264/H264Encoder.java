@@ -45,48 +45,26 @@ import org.jcodec.common.tools.MathUtil;
 import org.jcodec.scale.ColorUtil;
 import org.jcodec.scale.Transform;
 
-/**
- * This class is part of JCodec ( www.jcodec.org ) This software is distributed
- * under FreeBSD License
- * 
- * MPEG 4 AVC ( H.264 ) Encoder
- * 
- * Conforms to H.264 ( ISO/IEC 14496-10 ) specifications
- * 
- * @author The JCodec project
- * 
- */
 public class H264Encoder extends VideoEncoder {
-
-    // private static final int QP = 20;
     private static final int KEY_INTERVAL_DEFAULT = 25;
     private static final int MOTION_SEARCH_RANGE_DEFAULT = 16;
-
     public static H264Encoder createH264Encoder() {
         return new H264Encoder(new CQPRateControl(24));
     }
-
     private RateControl rc;
     private int frameNumber;
     private int keyInterval;
     private int motionSearchRange;
-
     private int maxPOC;
-
     private int maxFrameNumber;
-
     private SeqParameterSet sps;
-
     private PictureParameterSet pps;
-
     private MBWriterI16x16 mbEncoderI16x16;
     private MBWriterINxN mbEncoderINxN;
     private MBWriterP16x16 mbEncoderP16x16;
-
     private Picture ref;
     private Picture picOut;
     private EncodedMB[] topEncoded;
-
     private boolean psnrEn;
     private long[] sum_se = new long[3];
     private long[] g_sum_se = new long[3];
@@ -97,52 +75,38 @@ public class H264Encoder extends VideoEncoder {
     private boolean enableRdo;
     private String decodedDump;
     private FileChannelWrapper dumpOut;
-
     public H264Encoder(RateControl rc) {
         this.rc = rc;
         this.keyInterval = KEY_INTERVAL_DEFAULT;
         this.motionSearchRange = MOTION_SEARCH_RANGE_DEFAULT;
     }
-
     public int getKeyInterval() {
         return keyInterval;
     }
-
     public void setKeyInterval(int keyInterval) {
         this.keyInterval = keyInterval;
     }
-
     public int getMotionSearchRange() {
         return motionSearchRange;
     }
-
     public void setMotionSearchRange(int motionSearchRange) {
         this.motionSearchRange = motionSearchRange;
     }
-
     public boolean isPsnrEn() {
         return psnrEn;
     }
-
     public void setPsnrEn(boolean psnrEn) {
         this.psnrEn = psnrEn;
     }
-
     public void setEncDecMismatch(boolean test) {
         this.decoder = new H264Decoder();
     }
-
     public void setEnableRdo(boolean enableRdo) {
         this.enableRdo = enableRdo;
     }
-
     public void setDecodedDump(String decodedDump) {
         this.decodedDump = decodedDump;
     }
-
-    /**
-     * Encode this picture into h.264 frame. Frame type will be selected by encoder.
-     */
     public EncodedFrame encodeFrame(Picture pic, ByteBuffer _out) {
         if (pic.getColor() != ColorSpace.YUV420J)
             throw new IllegalArgumentException("Input picture color is not supported: " + pic.getColor());
@@ -225,28 +189,11 @@ public class H264Encoder extends VideoEncoder {
         return 10 * Math.log10((255 * 255) / mse);
     }
 
-    /**
-     * Encode this picture as an IDR frame. IDR frame starts a new independently
-     * decodeable video sequence
-     * 
-     * @param pic
-     * @param _out
-     * @return
-     */
     public ByteBuffer encodeIDRFrame(Picture pic, ByteBuffer _out) {
         frameNumber = 0;
         return doEncodeFrame(pic, _out, true, frameNumber, SliceType.I);
     }
 
-    /**
-     * Encode this picture as a P-frame. P-frame is an frame predicted from one or
-     * more of the previosly decoded frame and is usually 10x less in size then the
-     * IDR frame.
-     * 
-     * @param pic
-     * @param _out
-     * @return
-     */
     public ByteBuffer encodePFrame(Picture pic, ByteBuffer _out) {
         frameNumber++;
         return doEncodeFrame(pic, _out, true, frameNumber, SliceType.P);
